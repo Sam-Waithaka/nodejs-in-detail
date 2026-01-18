@@ -1,7 +1,5 @@
 import { readFile } from "fs";
 import { Express } from "express";
-
-
 const renderTemplate = (path: string, context: any,
     callback: (err: any, response: string | undefined) => void) => {
     readFile(path, (err, data) => {
@@ -12,13 +10,14 @@ const renderTemplate = (path: string, context: any,
         }
     });
 };
-
-
 const parseTemplate = (template: string, context: any) => {
+    const ctx = Object.keys(context)
+     .map((k) => `const ${k} = context.${k}`)
+        .join(";");
     const expr = /{{(.*)}}/gm;
     return template.toString().replaceAll(expr, (match, group) => {
-        return context[group.trim()] ?? "(no data)"
-    });               
+  return eval(`${ctx};${group}`);
+    });
 }
 export const registerCustomTemplateEngine = (expressApp: Express) =>
-    expressApp.engine("custom", renderTemplate);
+    expressApp.engine("custom", renderTemplate)
