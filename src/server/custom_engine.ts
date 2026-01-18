@@ -38,3 +38,6 @@ const evalFunc= (expr: string) => {
         }
     });
 }
+
+export const registerCustomTemplateEngine = (expressApp: Express) =>
+    expressApp.engine("custom", renderTemplate);

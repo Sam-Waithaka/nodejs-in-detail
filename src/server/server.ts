@@ -19,7 +19,13 @@ expressApp.use(helmet());
 expressApp.use(express.json());
 
 expressApp.get('/dynamic/:file', (req, resp) =>{
-    resp.render(`${req.params.file}.custom`, {message: 'Hello template'})
+    resp.render(
+        `${req.params.file}.custom`, 
+        {
+            message: 'Hello template',
+            req
+        },
+    )
 })
 expressApp.post("/test", testHandler);
 expressApp.use(express.static("static"));
