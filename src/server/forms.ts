@@ -1,29 +1,17 @@
 import express, { Express } from "express";
-import { getValidationResults, validate } from "./validation";
-
 export const registerFormMiddleware = (app: Express) => {
     app.use(express.urlencoded({extended: true}))
 }
-
 export const registerFormRoutes = (app: Express) => {
     app.get("/form", (req, resp) => {
-        resp.render("age", { helpers: { pass }});
+        resp.render("age");
     });
-    app.post("/form",
-            validate("name").required().minLength(5),
-            validate("age").isInteger(),
-        (req, resp) => {
-            const validation = getValidationResults(req);
-            const context = { ...req.body, validation,
-                helpers: { pass }
-            };
-            if (validation.valid) {
-                context.nextage = Number.parseInt(req.body.age) + 1;
-            }
-            resp.render("age", context);  
-        });
-}
-const pass = (valid: any, propname: string, test: string ) => {
-    let propResult = valid?.results?.[propname];
-    return `display:${!propResult || propResult[test] ? "none" : "block" }`;
+    app.post("/form", (req, resp) => {
+        const nextage = Number.parseInt(req.body.age)
+            + Number.parseInt(req.body.years);
+        const context = {
+            ...req.body, nextage
+        };
+        resp.render("age", context);  
+    });
 }
