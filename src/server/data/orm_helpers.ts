@@ -27,3 +27,25 @@ export const initializeModels = (sequelize: Sequelize) =>{
         ...primaryKey,
     }, { sequelize })
 }
+
+
+export const defineRelationships = ()=>{
+    ResultModel.belongsTo(Person, { foreignKey: 'personId' })
+    ResultModel.belongsTo(Calculation, {foreignKey: 'calculationId'})
+}
+
+export const addSeedData = async (sequelize: Sequelize) => {
+    await sequelize.query(`
+        INSERT INTO Calculations
+            (id, age, years, nextage, createdAt, updatedAt) VALUES
+                (1, 35, 5, 40, date(), date()),
+                (2, 35, 10, 45, date(), date())`);
+    await sequelize.query(`
+        INSERT INTO People (id, name, createdAt, updatedAt) VALUES
+            (1, 'Alice', date(), date()), (2, "Bob", date(), date())`);
+    await sequelize.query(`
+        INSERT INTO ResultModels
+                (calculationId, personId, createdAt, updatedAt) VALUES
+            (1, 1, date(), date()), (2, 2, date(), date()),
+            (2, 1, date(), date());`);
+}
