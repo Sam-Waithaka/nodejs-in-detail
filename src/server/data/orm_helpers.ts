@@ -1,5 +1,6 @@
-import { DataTypes, Sequelize } from "sequelize";
+import { DataTypes, Model, Sequelize } from "sequelize";
 import { Calculation, Person, ResultModel } from "./orm_models";
+import { Result } from "./repository";
 
 
 const primaryKey = {
@@ -48,4 +49,14 @@ export const addSeedData = async (sequelize: Sequelize) => {
                 (calculationId, personId, createdAt, updatedAt) VALUES
             (1, 1, date(), date()), (2, 2, date(), date()),
             (2, 1, date(), date());`);
+}
+
+export const fromOrmModel = (model: ResultModel | null) : Result => {
+    return {
+        id: model?.id || 0,
+        name: model?.Person?.name || "",
+        age: model?.Calculation?.age || 0,
+        years: model?.Calculation?.years || 0,
+        nextage: model?.Calculation?.nextage || 0
+    }
 }

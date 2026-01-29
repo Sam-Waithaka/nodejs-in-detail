@@ -3,7 +3,7 @@ import { Model, CreationOptional, ForeignKey, InferAttributes, InferCreationAttr
 
 export class Person extends Model<InferAttributes<Person>, InferCreationAttributes<Person>>{
     declare id?: CreationOptional<number>
-    declare name: String
+    declare name: string
 }
 
 export class Calculation extends Model<InferAttributes<Calculation>, InferCreationAttributes<Calculation>>{
