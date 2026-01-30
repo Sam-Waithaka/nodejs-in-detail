@@ -1,9 +1,13 @@
 import { ServerResponse, IncomingMessage } from "http";
+import { signCookie, validateCookie } from "./cookies_signed";
 
 const setheaderName = 'Set-Cookie'
+const cookieSecret = 'mysecret'
 
 export const setCookie = (resp: ServerResponse, name: string, val: string)=>{
-    let cookieVal: any [] = [`${name}=${val}; Max-Age=300; SameSite=Strict`]
+    
+    const signedCookieVal = signCookie(val, cookieSecret)
+    let cookieVal: any [] = [`${name}=${signedCookieVal}; Max-Age=300; SameSite=Strict`]
 
     if(resp.hasHeader(setheaderName)){
         cookieVal.push(resp.getHeader(setheaderName))
@@ -23,7 +27,7 @@ export const getCookie = (req: IncomingMessage, key: string): string | undefined
             const {name, val} =  /^(?<name>.*)=(?<val>.*)$/.exec(cookie)?.groups as any
 
             if (name.trim() === key){
-                result = val
+                result = validateCookie(val, cookieSecret)
             }
         })  
     })
