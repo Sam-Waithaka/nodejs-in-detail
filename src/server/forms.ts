@@ -1,12 +1,14 @@
 import express, { Express } from "express";
 import repository from "./data";
 import { getJsonCookie, setJsonCookie } from "./cookies";
+import cookieMiddleware from "cookie-parser";
 
 
 const rowLimit = 10
 
 export const registerFormMiddleware = (app: Express) => {
     app.use(express.urlencoded({extended: true}))
+    app.use(cookieMiddleware('mysecret'))
 }
 export const registerFormRoutes = (app: Express) => {
     app.get("/form", async (req, resp) => {
