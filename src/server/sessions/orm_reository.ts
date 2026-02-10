@@ -17,6 +17,9 @@ export class OrmRepository implements ApiRepository, SessionRepository {
         });
         this.initModelAndDatabase();
     }
+    update(r: Result): Promise<Result | undefined> {
+        throw new Error("Method not implemented.");
+    }
     saveResult(r: Result): Promise<number> {
         throw new Error("Method not implemented.");
     }

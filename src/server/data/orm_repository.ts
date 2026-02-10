@@ -72,4 +72,29 @@ export class OrmRepository implements ApiRepository {
             limit, order: [["id", "DESC"]]
         })).map(row => fromOrmModel(row))
     }
+
+    async update(r: Result): Promise<Result | undefined> {
+        const mod = await this.sequelize.transaction(async (transaction)=>{
+            const stored = await ResultModel.findByPk(r.id)
+
+            if (stored !== null){
+                const [person] = await Person.findOrCreate({
+                    where: {name: r.name}, 
+                    transaction
+                })
+
+                const [calculation] = await Calculation.findOrCreate({
+                    where: {
+                        age: r.age, years: r.years, nextage: r.nextage
+                    }, transaction
+                })
+
+                stored.personId = person.id
+                stored.calculationId = calculation.id
+                return await stored.save({transaction})
+            }
+        })
+
+        return mod ? this.getResultById(mod.id) : undefined
+    }
 }

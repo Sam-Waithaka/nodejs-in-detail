@@ -22,5 +22,10 @@ export class ResultWebService implements WebService<Result>{
     delete(id: any): Promise<boolean> {
         return repository.delete(Number.parseInt(id))
     }
+
+    replace(id: any, data: any): Promise<Result | undefined>{
+        const {name, age, years, nextage} = data
+        return repository.update({id, name, age, years, nextage})
+    }
     
 }

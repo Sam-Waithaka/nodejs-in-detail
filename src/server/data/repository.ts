@@ -18,5 +18,5 @@ export interface ApiRepository extends Repository {
 
     delete(id: number): Promise<boolean>
 
-    // update(r: Result): Promise<Result | undefined>
+    update(r: Result): Promise<Result | undefined>
 }
