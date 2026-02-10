@@ -6,6 +6,22 @@ export const ops = {
         const name = await input({ message: "Name?"});
         await sendRequest("GET", `/api/results?name=${name}`);
     },
+    'Get ID': async ()=>{
+        const id = await input ({ message: 'ID?' })
+        await sendRequest('GET', `/api/results/${id}`)
+    },
+    'Store': async ()=>{
+        const values = {
+            name: await input({message: 'Name'}),
+            age: await input({message: 'Age?'}),
+            years: await input({message: 'Years?'})
+        }
+        await sendRequest('POST', '/api/results', values)
+    },
+    'Delete': async ()=>{
+        const id = await input({ message: 'ID' })
+        await sendRequest('DELETE', `/api/results/${id}`)
+    },
     "Exit": () => process.exit()
 }
 const sendRequest = async (method, url, body, contentType) => {

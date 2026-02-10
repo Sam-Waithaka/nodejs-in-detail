@@ -12,3 +12,9 @@ export interface Repository {
 
     getResultsByName(name: string, limit: number): Promise<Result[]>
 }
+
+export interface ApiRepository extends Repository {
+    getResultById(id: number): Promise <Result | undefined>
+
+    delete(id: number): Promise<boolean>
+}

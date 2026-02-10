@@ -2,7 +2,11 @@ import { Op, Sequelize } from "sequelize";
 import { Session, SessionRepository } from "./repository";
 import { SessionModel, initializeModel } from "./orm_models";
 import { randomUUID } from "crypto";
-export class OrmRepository implements SessionRepository {
+import { ApiRepository, Result } from "../data/repository";
+import { Calculation, Person, ResultModel } from "../data/orm_models";
+import { fromOrmModel } from "../data/orm_helpers";
+
+export class OrmRepository implements ApiRepository, SessionRepository {
     sequelize: Sequelize;
     constructor() {
         this.sequelize = new Sequelize({
@@ -12,6 +16,29 @@ export class OrmRepository implements SessionRepository {
             logQueryParameters: true
         });
         this.initModelAndDatabase();
+    }
+    saveResult(r: Result): Promise<number> {
+        throw new Error("Method not implemented.");
+    }
+    getAllResults(limit: number): Promise<Result[]> {
+        throw new Error("Method not implemented.");
+    }
+    getResultsByName(name: string, limit: number): Promise<Result[]> {
+        throw new Error("Method not implemented.");
+    }
+
+
+    async getResultById(id: number): Promise<Result | undefined>{
+        const model = await ResultModel.findByPk(id, {
+            include: [Person, Calculation]
+        })
+
+        return model ? fromOrmModel(model) : undefined
+    }
+
+    async delete(id: number): Promise<boolean> {
+        const count = await ResultModel.destroy({where: {id}})
+        return count == 1
     }
     async initModelAndDatabase() : Promise<void> {
         initializeModel(this.sequelize);

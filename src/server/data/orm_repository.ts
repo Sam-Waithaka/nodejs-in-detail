@@ -1,9 +1,9 @@
 import { Sequelize, Transaction } from "sequelize";
-import { Repository, Result } from "./repository";
+import { ApiRepository, Result } from "./repository";
 import { addSeedData, defineRelationships, fromOrmModel, initializeModels } from "./orm_helpers";
 import { Calculation, Person, ResultModel } from "./orm_models";
 
-export class OrmRepository implements Repository {
+export class OrmRepository implements ApiRepository {
     sequelize: Sequelize
 
     constructor(){
@@ -22,6 +22,17 @@ export class OrmRepository implements Repository {
         await this.sequelize.sync()
         await addSeedData(this.sequelize)
 
+    }
+
+     async getResultById(id: number): Promise <Result | undefined> {
+        const model = await ResultModel.findByPk(id, {
+            include: [Person, Calculation ]
+        });
+        return model ? fromOrmModel(model): undefined;
+    }
+    async delete(id: number): Promise<boolean> {
+        const count = await ResultModel.destroy({ where: { id }});
+        return count == 1;
     }
 
     async saveResult(r: Result): Promise<number> {
