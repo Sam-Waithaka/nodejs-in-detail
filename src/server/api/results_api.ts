@@ -3,6 +3,7 @@ import { Result } from "../data/repository";
 import repository from "../data";
 
 export class ResultWebService implements WebService<Result>{
+    
     getOne(id: any): Promise<Result | undefined> {
         return repository.getResultById(Number.parseInt(id))
     }
@@ -26,6 +27,17 @@ export class ResultWebService implements WebService<Result>{
     replace(id: any, data: any): Promise<Result | undefined>{
         const {name, age, years, nextage} = data
         return repository.update({id, name, age, years, nextage})
+    }
+
+    async modify(id: any, data: any): Promise<Result | undefined> {
+        const dbData = await this.getOne(id)
+
+        if (dbData !== undefined){
+            Object.entries(dbData).forEach(([prop, val])=>{
+                (dbData as any)[prop] = data[prop] ?? val
+            })
+            return await this.replace(id, dbData)
+        }
     }
     
 }

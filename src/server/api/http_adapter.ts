@@ -6,6 +6,7 @@ export interface WebService<T>{
     store(data:any): Promise<T | undefined>
     delete(id: any): Promise<boolean>
     replace(id: any, data: any): Promise <T | undefined>
+    modify(id: any, data: any): Promise<T | undefined>
 }
 
 export function createAdapter<T>(app: Express, ws: WebService<T>, baseUrl: string){
@@ -53,6 +54,15 @@ export function createAdapter<T>(app: Express, ws: WebService<T>, baseUrl: strin
     app.put(`${baseUrl}/:id`, async (req, res)=>{
         try {
             res.json(await ws.replace(req.params.id, req.body))
+            res.end()
+        } catch (error) {
+            writeErrorResponse(error, res)
+        }
+    })
+
+    app.patch(`${baseUrl}/:id`, async (req, res)=>{
+        try {
+            res.json(await ws.modify(req.params.id, req.body))
             res.end()
         } catch (error) {
             writeErrorResponse(error, res)
