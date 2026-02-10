@@ -1,6 +1,7 @@
 import { WebService } from "./http_adapter";
 import { Result } from "../data/repository";
 import repository from "../data";
+import * as jsonpatch from 'fast-json-patch'
 
 export class ResultWebService implements WebService<Result>{
     
@@ -33,10 +34,15 @@ export class ResultWebService implements WebService<Result>{
         const dbData = await this.getOne(id)
 
         if (dbData !== undefined){
-            Object.entries(dbData).forEach(([prop, val])=>{
-                (dbData as any)[prop] = data[prop] ?? val
-            })
-            return await this.replace(id, dbData)
+            // Object.entries(dbData).forEach(([prop, val])=>{
+            //     (dbData as any)[prop] = data[prop] ?? val
+            // })
+            // return await this.replace(id, dbData)
+
+            return await this.replace(
+                id, 
+                jsonpatch.applyPatch(dbData, data).newDocument
+            )
         }
     }
     
