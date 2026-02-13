@@ -1,8 +1,8 @@
-import { ValidationRequirements, ValidationRule, WebServiceValidation } from "./validation_types";
+import {ModelValidation, ValidationRequirements, ValidationRule, WebServiceValidation } from "./validation_types";
 import validator from "validator";
 
 const intValidator: ValidationRule ={
-    validation: [val => validator.isInt(val)],
+    validation: [val => validator.isInt(val.toString())],
     converter: (val) => Number.parseInt(val)
 }
 
@@ -20,4 +20,9 @@ export const ResultWebServiceValidation: WebServiceValidation ={
         ...partialResultValidator,
         nextage: intValidator
     }
+}
+
+export const ResultModelValidation: ModelValidation = {
+    propertyRules: { ...partialResultValidator, nextage: intValidator},
+    modelRule: [(m: any)=> m.nextage === m.age + m.years]
 }
