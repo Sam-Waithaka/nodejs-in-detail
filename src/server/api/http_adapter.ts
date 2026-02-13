@@ -1,4 +1,5 @@
 import {Express, Response} from 'express'
+import { ValidationError } from './validation_types'
 
 export interface WebService<T>{
     getOne(id: any): Promise<T | undefined>
@@ -71,7 +72,7 @@ export function createAdapter<T>(app: Express, ws: WebService<T>, baseUrl: strin
 
     const writeErrorResponse = (err: any, res: Response)=>{
         console.error(err)
-        res.writeHead(500)
+        res.writeHead(err instanceof ValidationError ? 400 : 500)
         res.end()
     }
 }
