@@ -1,8 +1,10 @@
 import { Express } from "express";
 import { AuthStore } from "./auth_types";
 import { OrmAuthStore } from "./orm_authstore";
+import jwt from "jsonwebtoken";
 
 
+const jwt_secret = 'mytokensecret'
 const store : AuthStore = new OrmAuthStore()
 
 type User = {username: string}
@@ -25,6 +27,20 @@ export const createAuth = (app: Express)=>{
         if(username){
             req.authenticated = true
             req.user = {username}
+        } else if (req.headers.authorization){
+            let token = req.headers.authorization
+            if (token.startsWith('Bearer ')){
+                token = token.substring(7)
+            }
+
+            try {
+                const decoded = jwt.verify(token, jwt_secret) as User
+                req.authenticated = true
+                req.user={username: decoded.username}
+            } catch (error) {
+                
+            }
+
         } else {
             req.authenticated = false
         }
@@ -53,6 +69,22 @@ export const createAuth = (app: Express)=>{
         } else {
             res.redirect(`/signin?username=${username}&password=${password}&failed=1`)
         }
+    })
+
+    app.post('/api/signin', async (req, res)=>{
+        const username = req.body.username
+        const password = req.body.password
+        const result: any = {
+            success: await store.validateCredentials(username, password)
+        }
+
+        if (result.success){
+            result.token = jwt.sign({username}, jwt_secret, {expiresIn: '1hr'})
+        }
+
+        res.json(result)
+        res.end()
+
     })
 
     app.post('/signout', async (req, res)=>{
