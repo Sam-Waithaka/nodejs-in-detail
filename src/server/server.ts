@@ -5,6 +5,7 @@ import helmet from "helmet";
 import { engine } from "express-handlebars";
 import { registerFormMiddleware, registerFormRoutes } from "./forms";
 import { createApi } from "./api";
+import { createAuth } from "./auth";
 
 
 const port = 5000;
@@ -24,6 +25,7 @@ expressApp.use(express.json({
 
 
 registerFormMiddleware(expressApp);
+createAuth(expressApp)
 registerFormRoutes(expressApp)
 
 
