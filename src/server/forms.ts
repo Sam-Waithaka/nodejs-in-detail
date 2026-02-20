@@ -1,49 +1,34 @@
-import express, { Express } from "express";
-import repository from "./data";
-import { getJsonCookie, setJsonCookie } from "./cookies";
-import cookieMiddleware from "cookie-parser";
-import { customSessionMiddleware } from "./sessions/middleware"
-import { getSession, sessionMiddleware } from "./sessions/session_helpers";
-
+import express, {Express} from 'express'
+import repository from './data'
+import cookieMiddleware from 'cookie-parser'
+import { sessionMiddleware } from './sessions/session_helpers'
+import { Result } from './data/repository'
 
 const rowLimit = 10
 
-export const registerFormMiddleware = (app: Express) => {
+export const registerFormMiddleware = (app: Express)=>{
     app.use(express.urlencoded({extended: true}))
     app.use(cookieMiddleware('mysecret'))
-    // app.use(customSessionMiddleware())
     app.use(sessionMiddleware())
 }
-export const registerFormRoutes = (app: Express) => {
-    app.get("/form", async (req, resp) => {
-        resp.render("age", {
-            history: await repository.getAllResults(rowLimit),
-            personalHistory: getSession(req).personalHistory
-        });
-    });
 
+export const registerFormRoutes = (app: Express)=>{
+    app.get('/form', async (req, res)=>{
+        res.render('data', {data: await repository.getAllResults(rowLimit)})
+    })
 
-    app.post("/form", async (req, resp) => {
-        const nextage = Number.parseInt(req.body.age)
-            + Number.parseInt(req.body.years);
-        await repository.saveResult({...req.body, nextage });
-        // let pHistory = [{
-        //     name: req.body.name, age: req.body.age,
-        //     years: req.body.years, nextage},
-        //     ...(getJsonCookie(req, "personalHistory") || [])].splice(0, 5);
-       
-        // setJsonCookie(resp, "personalHistory", pHistory);
+    app.post('/form/delete/:id', async (req, res)=>{
+        const id = Number.parseInt(req.params['id'])
+        await repository.delete(id)
+        res.redirect('/form')
+        res.end()
+    })
 
-        req.session.personalHistory = [{
-            id: 0, name: req.body.name, age: req.body.age,
-            years: req.body.years, nextage},
-            ...(req.session.personalHistory || [])].splice(0, 5);
-       
-        const context = {
-            ...req.body, nextage,
-            history: await repository.getAllResults(rowLimit),
-            personalHistory: req.session.personalHistory
-        };
-        resp.render("age", context);  
-    });
+    app.post('/form/add', async (req, res)=>{
+        const nextage = Number.parseInt(req.body['age']) + Number.parseInt(req.body['years'])
+
+        await repository.saveResult({...req.body, nextage} as Result)
+        res.redirect('/form')
+        res.end()
+    })
 }
