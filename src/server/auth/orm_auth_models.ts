@@ -1,6 +1,7 @@
 import { DataTypes, InferAttributes, InferCreationAttributes, Model,
-    Sequelize } from "sequelize";
-import { Credentials } from "./auth_types";
+    Sequelize, HasManySetAssociationsMixin } from "sequelize";
+import { Credentials, Role } from "./auth_types";
+
 export class CredentialsModel
         extends Model<InferAttributes<CredentialsModel>,
             InferCreationAttributes<CredentialsModel>>
@@ -8,6 +9,13 @@ export class CredentialsModel
     declare username: string;
     declare hashedPassword: Buffer;
     declare salt: Buffer;
+    declare RoleModel?: InferAttributes<RoleModel>
+}
+
+export class RoleModel extends Model<InferAttributes<RoleModel>, InferCreationAttributes<RoleModel>>{
+    declare name: string
+    declare CredentialsModel?: InferAttributes<CredentialsModel>[]
+    declare setCredentialsModels: HasManySetAssociationsMixin<CredentialsModel, string>
 }
 
 export const initalizeAuthModels = (sequelize: Sequelize)=>{
@@ -16,4 +24,13 @@ export const initalizeAuthModels = (sequelize: Sequelize)=>{
         hashedPassword: {type: DataTypes.BLOB},
         salt: {type: DataTypes.BLOB}
     }, {sequelize})
+
+    RoleModel.init({
+        name: {type: DataTypes.STRING, primaryKey: true}
+    }, {sequelize})
+    RoleModel.belongsToMany(CredentialsModel, 
+        {through: 'RoleMembershipJuction', foreignKey: 'name'})
+    CredentialsModel.belongsToMany(RoleModel, 
+        {through: 'RoleMembershipJuction', foreignKey: 'username'}
+    )
 }

@@ -1,6 +1,6 @@
-import { Sequelize } from "sequelize";
-import { CredentialsModel, initalizeAuthModels } from "./orm_auth_models";
-import { AuthStore, Credentials } from "./auth_types";
+import { Sequelize, Op } from "sequelize";
+import { CredentialsModel, initalizeAuthModels, RoleModel } from "./orm_auth_models";
+import { AuthStore, Credentials, Role} from "./auth_types";
 import { randomBytes, pbkdf2, timingSafeEqual } from "crypto";
 
 
@@ -23,6 +23,14 @@ export class OrmAuthStore implements AuthStore{
         await this.sequelize.sync()
         await this.storeOrUpdateUser("alice", 'mysecret')
         await this.storeOrUpdateUser('bob', 'mysecret')
+        await this.storeOrUpdateRole({
+            name: 'Users',
+            members: ['alice', 'bob']
+        })
+        await this.storeOrUpdateRole({
+            name: 'Admins',
+            members:['alice']
+        })
     }
 
     async getUser(name: string){
@@ -56,5 +64,45 @@ export class OrmAuthStore implements AuthStore{
                 resolve(hash)
             })
         })
+    }
+
+    async getRole(name: string){
+        const stored = await RoleModel.findByPk(name, {
+            include: [{model: CredentialsModel, attributes: ['username']}]
+        })
+        if (stored){
+            return {
+                name: stored.name,
+                members: stored.CredentialsModel?.map(m => m.username) ?? []
+            }
+        }
+        return null
+    }
+
+    async getRolesForUser(username: string): Promise<string[]> {
+        return (await RoleModel.findAll({
+            include: [{
+                model: CredentialsModel,
+                where: {username},
+                attributes: []
+            }]
+        })).map(rm => rm.name)
+    }
+
+    async storeOrUpdateRole(role: Role) {
+        return await this.sequelize.transaction(async (transaction) => {
+            const users = await CredentialsModel.findAll({
+                where: { username: { [Op.in]: role.members } },
+                transaction
+            });           
+            const [rm] = await RoleModel.findOrCreate({
+                where: { name: role.name}, transaction });
+            await rm.setCredentialsModels(users, { transaction });
+            return role;
+        })
+    }
+
+    async validateMembership(username: string, rolename: string): Promise<boolean> {
+        return (await this.getRolesForUser(username)).includes(rolename)
     }
 }
