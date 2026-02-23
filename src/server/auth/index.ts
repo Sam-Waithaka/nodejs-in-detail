@@ -2,6 +2,7 @@ import { Express, NextFunction, RequestHandler } from "express";
 import { AuthStore } from "./auth_types";
 import { OrmAuthStore } from "./orm_authstore";
 import jwt from "jsonwebtoken";
+import { HookContext } from "@feathersjs/feathers";
 
 
 const jwt_secret = 'mytokensecret'
@@ -109,6 +110,18 @@ export const roleGuard = (role: string): RequestHandler<Request, Response, NextF
             res.redirect('/unauthorized')
         } else {
             res.redirect('/signin')
+        }
+    }
+}
+
+export const roleHook = (role: string)=>{
+    return async (ctx: HookContext)=>{
+        if (!ctx.params.authenticated){
+            ctx.http = {status: 401}
+            ctx.result = {}
+        } else if (!(await store.validateMembership(ctx.params.user.username, role))) {
+            ctx.http = {status: 400}
+            ctx.result = {}
         }
     }
 }

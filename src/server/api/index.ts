@@ -1,13 +1,13 @@
 import { Express } from "express";
-//import repository from "../data";
 import { createAdapter } from "./http_adapter";
 import { ResultWebService } from "./results_api";
 import { Validator } from "./validation_adapter";
 import { ResultWebServiceValidation } from "./results_api_validation";
 import { FeathersWrapper } from "./feathers_adaper";
-import feathersExpress, {rest} from "@feathersjs/express";
 import { feathers } from "@feathersjs/feathers";
+import feathersExpress, {rest} from "@feathersjs/express";
 import { ValidationError } from "./validation_types";
+import { roleHook } from "../auth";
 
 
 export const createApi = (app: Express) => {
@@ -15,7 +15,13 @@ export const createApi = (app: Express) => {
     const feathersApp = feathersExpress(feathers(), app).configure(rest())
     const service = new Validator(new ResultWebService(), ResultWebServiceValidation)
 
-    feathersApp.use('/api/results', new FeathersWrapper(service))
+    feathersApp.use('/api/results', 
+        (req, res, next)=>{
+            // req.feathers.user = req.user
+            // req.feathers.authenticated = req.authenticated
+            next()
+        },
+        new FeathersWrapper(service))
 
     feathersApp.hooks({
         error: {
@@ -25,6 +31,13 @@ export const createApi = (app: Express) => {
                     ctx.error = undefined
                 }
             }]
+        },
+
+        before: {
+            create: [roleHook('Users')],
+            remove: [roleHook('Admins')],
+            update: [roleHook('Admins')],
+            patch: [roleHook('Admins')]
         }
     })
 }
