@@ -1,4 +1,4 @@
-import { Express } from "express";
+import { Express, NextFunction, RequestHandler } from "express";
 import { AuthStore } from "./auth_types";
 import { OrmAuthStore } from "./orm_authstore";
 import jwt from "jsonwebtoken";
@@ -92,4 +92,23 @@ export const createAuth = (app: Express)=>{
             res.redirect('/')
         })
     })
+
+    app.get('/unauthorized', async (req, res)=>{
+        res.render('unauthorized')
+    })
+}
+
+export const roleGuard = (role: string): RequestHandler<Request, Response, NextFunction>=>{
+    return async (req, res, next)=>{
+        if (req.authenticated){
+            const username = req.user.username
+            if (await store.validateMembership(username, role)){
+                next ()
+                return
+            }
+            res.redirect('/unauthorized')
+        } else {
+            res.redirect('/signin')
+        }
+    }
 }
